@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:personal_expenses_app/transaction_wrapper.dart';
 
 import './transaction.dart';
+import './transaction_card.dart';
 
 void main() {
   runApp(const MyApp());
@@ -53,40 +54,51 @@ class MyHomePage extends StatefulWidget {
 class _MyHomePageState extends State<MyHomePage> {
   int _counter = 0;
 
-  // final List<Transaction> transactions = [
-  //   Transaction(id: '001', itemName: 'Ham', amount: 10.0, category: 'Grocery'),
-  //   Transaction(
-  //       id: '002', itemName: 'Apples', amount: 4.0, category: 'Grocery'),
-  //   Transaction(
-  //       id: '003', itemName: 'Oranges', amount: 5.0, category: 'Grocery'),
-  //   Transaction(id: '004', itemName: 'Bread', amount: 5.0, category: 'Grocery'),
-  //   Transaction(
-  //       id: '005', itemName: 'Kayak', amount: 599.0, category: 'Sports'),
-  // ];
-
-  final List<Map<String, String>> transactionsList = [
-    {'id': '001', 'itemName': 'Ham', 'amount': '10.0', 'category': 'Grocery'},
-    {'id': '002', 'itemName': 'Apples', 'amount': '4.0', 'category': 'Grocery'},
-    {
-      'id': '003',
-      'itemName': 'Oranges',
-      'amount': '5.0',
-      'category': 'Grocery'
-    },
-    {'id': '004', 'itemName': 'Bread', 'amount': '5.0', 'category': 'Grocery'},
-    {'id': '005', 'itemName': 'Kayak', 'amount': '599.0', 'category': 'Sports'},
+  final List<Transaction> transactions = [
+    Transaction(
+      id: '001',
+      itemName: 'Ham',
+      amount: 10.0,
+      category: 'Grocery',
+      datetime: DateTime.now(),
+    ),
+    Transaction(
+      id: '002',
+      itemName: 'Apples',
+      amount: 4.0,
+      category: 'Grocery',
+      datetime: DateTime.now(),
+    ),
+    Transaction(
+      id: '003',
+      itemName: 'Oranges',
+      amount: 5.0,
+      category: 'Grocery',
+      datetime: DateTime.now(),
+    ),
+    Transaction(
+      id: '004',
+      itemName: 'Bread',
+      amount: 5.0,
+      category: 'Grocery',
+      datetime: DateTime.now(),
+    ),
+    Transaction(
+      id: '005',
+      itemName: 'Kayak',
+      amount: 599.0,
+      category: 'Sports',
+      datetime: DateTime.now(),
+    ),
   ];
 
-  void _incrementCounter() {
-    setState(() {
-      // This call to setState tells the Flutter framework that something has
-      // changed in this State, which causes it to rerun the build method below
-      // so that the display can reflect the updated values. If we changed
-      // _counter without calling setState(), then the build method would not be
-      // called again, and so nothing would appear to happen.
-      _counter++;
-    });
-  }
+  // final List<Map<String, <String, double>>> transactionsList = [
+  //   {'id': '001', 'itemName': 'Ham', 'amount': 10.0, 'category': 'Grocery'},
+  //   {'id': '002', 'itemName': 'Apples', 'amount': 4.0, 'category': 'Grocery'},
+  //   {'id': '003', 'itemName': 'Oranges', 'amount': 5.0, 'category': 'Grocery'},
+  //   {'id': '004', 'itemName': 'Bread', 'amount': 5.0, 'category': 'Grocery'},
+  //   {'id': '005', 'itemName': 'Kayak', 'amount': 599.0, 'category': 'Sports'},
+  // ];
 
   @override
   Widget build(BuildContext context) {
@@ -108,27 +120,22 @@ class _MyHomePageState extends State<MyHomePage> {
         children: <Widget>[
           Card(
             color: Colors.blue,
-            child: Container(
-              width: double.infinity,
-              child: Center(child: Text('This is your app!')),
+            child: Column(
+              children: [
+                Container(
+                  width: double.infinity,
+                  child: Center(child: Text('Groceries bought:')),
+                ),
+              ],
+              mainAxisAlignment: MainAxisAlignment.start,
             ),
             elevation: 0,
           ),
-          Card(
-              //     child: Container(
-              //   child: Text(
-              //     'Transactions',
-              //     style: TextStyle(fontSize: 20),
-              //   ),
-              // ),
-              child: TransactionWrapper(transactionsList: transactionsList)),
+          TransactionCard(
+            transaction: transactions[0],
+          )
         ],
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _incrementCounter,
-        tooltip: 'Increment',
-        child: const Icon(Icons.add),
-      ), // This trailing comma makes auto-formatting nicer for build methods.
     );
   }
 }
