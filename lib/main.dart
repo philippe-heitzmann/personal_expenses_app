@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:personal_expenses_app/transaction_wrapper.dart';
 
-import './transaction.dart';
+import 'models/transaction.dart';
 import './transaction_card.dart';
 
 void main() {
@@ -28,78 +28,76 @@ class MyApp extends StatelessWidget {
         // is not restarted.
         primarySwatch: Colors.blue,
       ),
-      home: const MyHomePage(title: 'Flutter Demo Home Page'),
+      home: MyHomePage(),
     );
   }
 }
 
 class MyHomePage extends StatefulWidget {
-  const MyHomePage({Key? key, required this.title}) : super(key: key);
-
-  // This widget is the home page of your application. It is stateful, meaning
-  // that it has a State object (defined below) that contains fields that affect
-  // how it looks.
-
-  // This class is the configuration for the state. It holds the values (in this
-  // case the title) provided by the parent (in this case the App widget) and
-  // used by the build method of the State. Fields in a Widget subclass are
-  // always marked "final".
-
-  final String title;
-
   @override
   State<MyHomePage> createState() => _MyHomePageState();
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  int _counter = 0;
+  // const MyHomePage({Key? key}) : super(key: key);
+  final titleController = TextEditingController();
+
+  final amountController = TextEditingController();
+
+  String itemNameInput = '';
+
+  String amountInput = '';
 
   final List<Transaction> transactions = [
     Transaction(
       id: '001',
       itemName: 'Ham',
-      amount: 10.0,
+      amount: 9.99,
       category: 'Grocery',
       datetime: DateTime.now(),
     ),
     Transaction(
       id: '002',
       itemName: 'Apples',
-      amount: 4.0,
+      amount: 3.99,
       category: 'Grocery',
       datetime: DateTime.now(),
     ),
     Transaction(
       id: '003',
       itemName: 'Oranges',
-      amount: 5.0,
+      amount: 4.99,
       category: 'Grocery',
       datetime: DateTime.now(),
     ),
     Transaction(
       id: '004',
       itemName: 'Bread',
-      amount: 5.0,
+      amount: 4.99,
       category: 'Grocery',
       datetime: DateTime.now(),
     ),
     Transaction(
       id: '005',
       itemName: 'Kayak',
-      amount: 599.0,
+      amount: 599.99,
       category: 'Sports',
       datetime: DateTime.now(),
     ),
   ];
 
-  // final List<Map<String, <String, double>>> transactionsList = [
-  //   {'id': '001', 'itemName': 'Ham', 'amount': 10.0, 'category': 'Grocery'},
-  //   {'id': '002', 'itemName': 'Apples', 'amount': 4.0, 'category': 'Grocery'},
-  //   {'id': '003', 'itemName': 'Oranges', 'amount': 5.0, 'category': 'Grocery'},
-  //   {'id': '004', 'itemName': 'Bread', 'amount': 5.0, 'category': 'Grocery'},
-  //   {'id': '005', 'itemName': 'Kayak', 'amount': 599.0, 'category': 'Sports'},
-  // ];
+  void createTxn(itemName, amount, datetime) {
+    setState(() {
+      transactions.add(Transaction(
+          id: '999',
+          itemName: itemName,
+          amount: amount,
+          category: 'Misc',
+          datetime: datetime));
+    });
+  }
 
+  // @override
   @override
   Widget build(BuildContext context) {
     // This method is rerun every time setState is called, for instance as done
@@ -112,28 +110,73 @@ class _MyHomePageState extends State<MyHomePage> {
       appBar: AppBar(
         // Here we take the value from the MyHomePage object that was created by
         // the App.build method, and use it to set our appbar title.
-        title: Text(widget.title),
+        title: Text('Demo Page'),
       ),
       body: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        crossAxisAlignment: CrossAxisAlignment.center,
+        mainAxisAlignment: MainAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
           Card(
             color: Colors.blue,
+            elevation: 0,
             child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.start,
               children: [
                 Container(
                   width: double.infinity,
-                  child: Center(child: Text('Groceries bought:')),
+                  child: Text('Groceries bought:'),
                 ),
               ],
-              mainAxisAlignment: MainAxisAlignment.start,
             ),
-            elevation: 0,
           ),
-          TransactionCard(
-            transaction: transactions[0],
-          )
+          Card(
+            elevation: 5,
+            child: Container(
+                padding: EdgeInsets.all(5),
+                child: Column(
+                  children: [
+                    TextField(
+                      decoration: InputDecoration(labelText: 'Item name'),
+                      controller: titleController,
+                      // onChanged: (val) => itemNameInput = val,
+                    ),
+                    TextField(
+                      decoration: InputDecoration(labelText: 'Amount'),
+                      controller: amountController,
+                      // onChanged: (val) => amountInput = val,
+                    ),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      children: [
+                        TextButton(
+                            // style: ButtonStyle(backgroundColor: Colors.purple),
+                            onPressed: () {
+                              createTxn(
+                                  titleController.text,
+                                  double.parse(amountController.text),
+                                  DateTime.now());
+                            },
+                            child: Container(
+                              child: Text(
+                                'Submit',
+                                style: TextStyle(color: Colors.purple),
+                              ),
+                            )),
+                      ],
+                    ),
+                  ],
+                )),
+          ),
+          TransactionWrapper(transactionsList: transactions),
+          // TransactionCard(
+          //   transaction: transactions[0],
+          // ),
+          // TransactionCard(
+          //   transaction: transactions[1],
+          // ),
+          // TransactionCard(
+          //   transaction: transactions[2],
         ],
       ),
     );
