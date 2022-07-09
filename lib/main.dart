@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:personal_expenses_app/transaction_wrapper.dart';
+import 'package:personal_expenses_app/widgets/new_transaction.dart';
 
-import 'models/transaction.dart';
-import './transaction_card.dart';
+import './transaction_wrapper.dart';
+import './widgets/new_transaction.dart';
+import './widgets/chart.dart';
+import '../models/transaction.dart';
 
 void main() {
   runApp(const MyApp());
@@ -16,17 +18,47 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Flutter Demo',
-      theme: ThemeData(
-        // This is the theme of your application.
-        //
-        // Try running your application with "flutter run". You'll see the
-        // application has a blue toolbar. Then, without quitting the app, try
-        // changing the primarySwatch below to Colors.green and then invoke
-        // "hot reload" (press "r" in the console where you ran "flutter run",
-        // or simply save your changes to "hot reload" in a Flutter IDE).
-        // Notice that the counter didn't reset back to zero; the application
-        // is not restarted.
-        primarySwatch: Colors.blue,
+      theme: ThemeData().copyWith(
+        // primarySwatch: Colors.blue,
+        // accentColor: Colors.purple,
+        colorScheme: ThemeData()
+            .colorScheme
+            .copyWith(primary: Colors.blue, secondary: Colors.purple),
+        appBarTheme: const AppBarTheme(
+            titleTextStyle: TextStyle(
+                fontFamily: 'OpenSans',
+                fontWeight: FontWeight.bold,
+                fontSize: 22),
+            color: Colors.blue),
+        // ignore: deprecated_member_use
+        // textTheme: ThemeData.light().textTheme.apply(
+        //       fontFamily: 'Roboto',
+        //     ),
+        textTheme: ThemeData.light().textTheme.copyWith(
+              headline6: const TextStyle(
+                  fontFamily: 'Roboto',
+                  fontSize: 16,
+                  color: Colors.purple,
+                  fontWeight: FontWeight.bold),
+              headline5: const TextStyle(
+                  fontFamily: 'Roboto',
+                  fontSize: 15,
+                  color: Colors.black,
+                  fontWeight: FontWeight.bold),
+              headline4: const TextStyle(
+                fontFamily: 'Roboto',
+                fontSize: 12,
+                color: Colors.grey,
+                fontWeight: FontWeight.bold,
+                fontStyle: FontStyle.italic,
+              ),
+            ),
+        primaryTextTheme: ThemeData.light().textTheme.apply(
+              fontFamily: 'Roboto',
+            ),
+        accentTextTheme: ThemeData.light().textTheme.apply(
+              fontFamily: 'Roboto',
+            ),
       ),
       home: MyHomePage(),
     );
@@ -48,53 +80,67 @@ class _MyHomePageState extends State<MyHomePage> {
 
   String amountInput = '';
 
-  final List<Transaction> transactions = [
-    Transaction(
-      id: '001',
-      itemName: 'Ham',
-      amount: 9.99,
-      category: 'Grocery',
-      datetime: DateTime.now(),
-    ),
-    Transaction(
-      id: '002',
-      itemName: 'Apples',
-      amount: 3.99,
-      category: 'Grocery',
-      datetime: DateTime.now(),
-    ),
-    Transaction(
-      id: '003',
-      itemName: 'Oranges',
-      amount: 4.99,
-      category: 'Grocery',
-      datetime: DateTime.now(),
-    ),
-    Transaction(
-      id: '004',
-      itemName: 'Bread',
-      amount: 4.99,
-      category: 'Grocery',
-      datetime: DateTime.now(),
-    ),
-    Transaction(
-      id: '005',
-      itemName: 'Kayak',
-      amount: 599.99,
-      category: 'Sports',
-      datetime: DateTime.now(),
-    ),
+  final List<Transaction> _userTransactions = [
+    // Transaction(
+    //   id: '001',
+    //   itemName: 'Ham',
+    //   amount: 9.99,
+    //   category: 'Grocery',
+    //   datetime: DateTime.now(),
+    // ),
+    // Transaction(
+    //   id: '002',
+    //   itemName: 'Apples',
+    //   amount: 3.99,
+    //   category: 'Grocery',
+    //   datetime: DateTime.now(),
+    // ),
+    // Transaction(
+    //   id: '003',
+    //   itemName: 'Oranges',
+    //   amount: 4.99,
+    //   category: 'Grocery',
+    //   datetime: DateTime.now(),
+    // ),
+    // Transaction(
+    //   id: '004',
+    //   itemName: 'Bread',
+    //   amount: 4.99,
+    //   category: 'Grocery',
+    //   datetime: DateTime.now(),
+    // ),
+    // Transaction(
+    //   id: '005',
+    //   itemName: 'Kayak',
+    //   amount: 599.99,
+    //   category: 'Sports',
+    //   datetime: DateTime.now(),
+    // ),
   ];
 
-  void createTxn(itemName, amount, datetime) {
+  void createTxn(String itemName, double amount) {
+    final newTxn = Transaction(
+        id: '999',
+        itemName: itemName,
+        amount: amount,
+        category: 'Misc',
+        datetime: DateTime.now());
+
     setState(() {
-      transactions.add(Transaction(
-          id: '999',
-          itemName: itemName,
-          amount: amount,
-          category: 'Misc',
-          datetime: datetime));
+      _userTransactions.add(newTxn);
     });
+  }
+
+  void _startAddNewTransaction(BuildContext ctx) {
+    showModalBottomSheet(
+        context: ctx,
+        builder: (_) {
+          return GestureDetector(
+            onTap: () {},
+            child: NewTransaction(createTxn),
+            behavior: HitTestBehavior.opaque,
+          );
+        });
   }
 
   // @override
@@ -111,73 +157,39 @@ class _MyHomePageState extends State<MyHomePage> {
         // Here we take the value from the MyHomePage object that was created by
         // the App.build method, and use it to set our appbar title.
         title: Text('Demo Page'),
-      ),
-      body: Column(
-        mainAxisAlignment: MainAxisAlignment.start,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: <Widget>[
-          Card(
-            color: Colors.blue,
-            elevation: 0,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisAlignment: MainAxisAlignment.start,
-              children: [
-                Container(
-                  width: double.infinity,
-                  child: Text('Groceries bought:'),
-                ),
-              ],
-            ),
+        actions: [
+          IconButton(
+            icon: Icon(Icons.add),
+            onPressed: () => _startAddNewTransaction(context),
           ),
-          Card(
-            elevation: 5,
-            child: Container(
-                padding: EdgeInsets.all(5),
-                child: Column(
-                  children: [
-                    TextField(
-                      decoration: InputDecoration(labelText: 'Item name'),
-                      controller: titleController,
-                      // onChanged: (val) => itemNameInput = val,
-                    ),
-                    TextField(
-                      decoration: InputDecoration(labelText: 'Amount'),
-                      controller: amountController,
-                      // onChanged: (val) => amountInput = val,
-                    ),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.end,
-                      children: [
-                        TextButton(
-                            // style: ButtonStyle(backgroundColor: Colors.purple),
-                            onPressed: () {
-                              createTxn(
-                                  titleController.text,
-                                  double.parse(amountController.text),
-                                  DateTime.now());
-                            },
-                            child: Container(
-                              child: Text(
-                                'Submit',
-                                style: TextStyle(color: Colors.purple),
-                              ),
-                            )),
-                      ],
-                    ),
-                  ],
-                )),
-          ),
-          TransactionWrapper(transactionsList: transactions),
-          // TransactionCard(
-          //   transaction: transactions[0],
-          // ),
-          // TransactionCard(
-          //   transaction: transactions[1],
-          // ),
-          // TransactionCard(
-          //   transaction: transactions[2],
         ],
+      ),
+      body: SingleChildScrollView(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: <Widget>[
+            Card(
+              color: Theme.of(context).primaryColor,
+              elevation: 0,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.start,
+                children: [
+                  Chart(),
+                ],
+              ),
+            ),
+            TransactionWrapper(transactionsList: _userTransactions)
+          ],
+        ),
+      ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
+      floatingActionButton: FloatingActionButton(
+        child: Icon(Icons.add),
+        // backgroundColor: Theme.of(context).appBarTheme.backgroundColor,
+        backgroundColor: Theme.of(context).backgroundColor,
+        onPressed: () => _startAddNewTransaction(context),
       ),
     );
   }

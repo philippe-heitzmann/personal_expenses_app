@@ -21,16 +21,14 @@ class TransactionCard extends StatelessWidget {
             decoration: BoxDecoration(
                 border: Border.all(
               style: BorderStyle.solid,
-              color: Colors.purple,
+              color: Theme.of(context).colorScheme.secondary, //Colors.purple,
               width: 3.0,
             )),
             padding: const EdgeInsets.all(5),
             child: Text(
-              '\$${transaction.amount.toString()}',
-              style: const TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 15,
-                  color: Colors.purple),
+              '\$${transaction.amount.toStringAsFixed(2)}',
+              style: Theme.of(context).textTheme.headline6,
+              // ),
             ),
           ),
           Column(
@@ -40,23 +38,16 @@ class TransactionCard extends StatelessWidget {
                 Container(
                   child: Text(
                     transaction.itemName,
-                    style: const TextStyle(
-                        fontWeight: FontWeight.bold,
-                        color: Colors.black,
-                        fontSize: 15),
+                    style: Theme.of(context).textTheme.headline5,
                   ),
                 ),
+                // ),
                 Container(
                   child: Text(
                     DateFormat.yMMMd().format(transaction.datetime),
-                    style: const TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontStyle: FontStyle.italic,
-                      color: Colors.grey,
-                      fontSize: 12,
-                    ),
+                    style: Theme.of(context).textTheme.headline4,
                   ),
-                )
+                ),
               ]),
         ],
       ),
