@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/src/foundation/key.dart';
-import 'package:flutter/src/widgets/framework.dart';
+import 'package:intl/intl.dart';
 import 'package:personal_expenses_app/transaction_card.dart';
 
 import './transaction_card.dart';
@@ -33,7 +32,27 @@ class TransactionWrapper extends StatelessWidget {
             )
           : ListView.builder(
               itemBuilder: (ctx, index) {
-                return TransactionCard(transaction: transactionsList[index]);
+                // return TransactionCard(transaction: transactionsList[index]);
+                return Card(
+                  elevation: 4,
+                  margin: EdgeInsets.symmetric(vertical: 8, horizontal: 5),
+                  child: ListTile(
+                    leading: CircleAvatar(
+                        radius: 30,
+                        child: Padding(
+                          padding: EdgeInsets.all(6),
+                          child: FittedBox(
+                              child:
+                                  Text('\$ ${transactionsList[index].amount}')),
+                        )),
+                    title: Text('${transactionsList[index].itemName}',
+                        style: Theme.of(context).textTheme.headline5),
+                    subtitle: Text(
+                      '${DateFormat.yMMMd().format(transactionsList[index].datetime)} ',
+                      style: Theme.of(context).textTheme.headline4,
+                    ),
+                  ),
+                );
               },
               itemCount: transactionsList.length,
               // children: <Widget>[
@@ -45,3 +64,5 @@ class TransactionWrapper extends StatelessWidget {
     );
   }
 }
+
+//child: ))

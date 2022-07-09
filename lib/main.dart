@@ -131,7 +131,17 @@ class _MyHomePageState extends State<MyHomePage> {
     });
   }
 
-  void _startAddNewTransaction(BuildContext ctx) {
+  List<Transaction> get _recentTransactions {
+    return _userTransactions.where((tx) {
+      return tx.datetime.isAfter(
+        DateTime.now().subtract(
+          Duration(days: 7),
+        ),
+      );
+    }).toList();
+  }
+
+  void _addNewTransaction(BuildContext ctx) {
     showModalBottomSheet(
         context: ctx,
         builder: (_) {
@@ -160,7 +170,7 @@ class _MyHomePageState extends State<MyHomePage> {
         actions: [
           IconButton(
             icon: Icon(Icons.add),
-            onPressed: () => _startAddNewTransaction(context),
+            onPressed: () => _addNewTransaction(context),
           ),
         ],
       ),
@@ -176,7 +186,7 @@ class _MyHomePageState extends State<MyHomePage> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisAlignment: MainAxisAlignment.start,
                 children: [
-                  Chart(),
+                  Chart(transactionsList: _recentTransactions),
                 ],
               ),
             ),
@@ -188,8 +198,8 @@ class _MyHomePageState extends State<MyHomePage> {
       floatingActionButton: FloatingActionButton(
         child: Icon(Icons.add),
         // backgroundColor: Theme.of(context).appBarTheme.backgroundColor,
-        backgroundColor: Theme.of(context).backgroundColor,
-        onPressed: () => _startAddNewTransaction(context),
+        backgroundColor: Theme.of(context).appBarTheme.backgroundColor,
+        onPressed: () => _addNewTransaction(context),
       ),
     );
   }
