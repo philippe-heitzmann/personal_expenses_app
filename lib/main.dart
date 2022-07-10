@@ -1,4 +1,7 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:personal_expenses_app/widgets/new_transaction.dart';
 
 import './transaction_wrapper.dart';
@@ -7,6 +10,10 @@ import './widgets/chart.dart';
 import '../models/transaction.dart';
 
 void main() {
+  // if don't want to enable landscape mode
+  // WidgetsFlutterBinding.ensureInitialized();
+  // SystemChrome.setPreferredOrientations(
+  //     [DeviceOrientation.portraitUp, DeviceOrientation.portraitDown]);
   runApp(const MyApp());
 }
 
@@ -35,30 +42,36 @@ class MyApp extends StatelessWidget {
         //       fontFamily: 'Roboto',
         //     ),
         textTheme: ThemeData.light().textTheme.copyWith(
-              headline6: const TextStyle(
-                  fontFamily: 'Roboto',
-                  fontSize: 16,
-                  color: Colors.purple,
-                  fontWeight: FontWeight.bold),
-              headline5: const TextStyle(
-                  fontFamily: 'Roboto',
-                  fontSize: 15,
-                  color: Colors.black,
-                  fontWeight: FontWeight.bold),
-              headline4: const TextStyle(
+            headline6: const TextStyle(
                 fontFamily: 'Roboto',
-                fontSize: 12,
-                color: Colors.grey,
-                fontWeight: FontWeight.bold,
-                fontStyle: FontStyle.italic,
-              ),
+                fontSize: 16,
+                color: Colors.purple,
+                fontWeight: FontWeight.bold),
+            headline5: const TextStyle(
+                fontFamily: 'Roboto',
+                fontSize: 15,
+                color: Colors.black,
+                fontWeight: FontWeight.bold),
+            headline4: const TextStyle(
+              fontFamily: 'Roboto',
+              fontSize: 12,
+              color: Colors.grey,
+              fontWeight: FontWeight.bold,
+              fontStyle: FontStyle.italic,
             ),
+            headline3: const TextStyle(color: Colors.white),
+            button: TextStyle(color: Colors.white)),
+        elevatedButtonTheme: ElevatedButtonThemeData(
+            style: ElevatedButton.styleFrom(
+          onPrimary: Colors.white,
+        )),
         primaryTextTheme: ThemeData.light().textTheme.apply(
               fontFamily: 'Roboto',
             ),
         accentTextTheme: ThemeData.light().textTheme.apply(
               fontFamily: 'Roboto',
             ),
+        errorColor: Colors.orange,
       ),
       home: MyHomePage(),
     );
@@ -80,54 +93,26 @@ class _MyHomePageState extends State<MyHomePage> {
 
   String amountInput = '';
 
-  final List<Transaction> _userTransactions = [
-    // Transaction(
-    //   id: '001',
-    //   itemName: 'Ham',
-    //   amount: 9.99,
-    //   category: 'Grocery',
-    //   datetime: DateTime.now(),
-    // ),
-    // Transaction(
-    //   id: '002',
-    //   itemName: 'Apples',
-    //   amount: 3.99,
-    //   category: 'Grocery',
-    //   datetime: DateTime.now(),
-    // ),
-    // Transaction(
-    //   id: '003',
-    //   itemName: 'Oranges',
-    //   amount: 4.99,
-    //   category: 'Grocery',
-    //   datetime: DateTime.now(),
-    // ),
-    // Transaction(
-    //   id: '004',
-    //   itemName: 'Bread',
-    //   amount: 4.99,
-    //   category: 'Grocery',
-    //   datetime: DateTime.now(),
-    // ),
-    // Transaction(
-    //   id: '005',
-    //   itemName: 'Kayak',
-    //   amount: 599.99,
-    //   category: 'Sports',
-    //   datetime: DateTime.now(),
-    // ),
-  ];
+  final List<Transaction> _userTransactions = [];
 
-  void createTxn(String itemName, double amount) {
+  bool _showChart = false;
+
+  void createTxn(String itemName, double amount, DateTime datetime) {
     final newTxn = Transaction(
-        id: '999',
+        id: DateTime.now().toString(),
         itemName: itemName,
         amount: amount,
         category: 'Misc',
-        datetime: DateTime.now());
+        datetime: datetime);
 
     setState(() {
       _userTransactions.add(newTxn);
+    });
+  }
+
+  void deleteTxn(String id) {
+    setState(() {
+      _userTransactions.removeWhere((tx) => tx.id == id);
     });
   }
 
@@ -162,45 +147,81 @@ class _MyHomePageState extends State<MyHomePage> {
     // The Flutter framework has been optimized to make rerunning build methods
     // fast, so that you can just rebuild anything that needs updating rather
     // than having to individually change instances of widgets.
+    final _isLandscape =
+        MediaQuery.of(context).orientation == Orientation.landscape;
+    final appBar = AppBar(
+      // Here we take the value from the MyHomePage object that was created by
+      // the App.build method, and use it to set our appbar title.
+      title: Text('Demo Page'),
+      actions: [
+        IconButton(
+          icon: Icon(Icons.add),
+          onPressed: () => _addNewTransaction(context),
+        ),
+      ],
+    );
+    final txListWidget = Container(
+      height: (MediaQuery.of(context).size.height -
+              appBar.preferredSize.height -
+              MediaQuery.of(context).padding.top) *
+          0.75,
+      child: TransactionWrapper(
+          transactionsList: _userTransactions, deleteTxn: deleteTxn),
+    );
+
+    final mediaqueryCtx = MediaQuery.of(context);
+
     return Scaffold(
-      appBar: AppBar(
-        // Here we take the value from the MyHomePage object that was created by
-        // the App.build method, and use it to set our appbar title.
-        title: Text('Demo Page'),
-        actions: [
-          IconButton(
-            icon: Icon(Icons.add),
-            onPressed: () => _addNewTransaction(context),
-          ),
-        ],
-      ),
+      appBar: appBar,
       body: SingleChildScrollView(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.start,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: <Widget>[
-            Card(
-              color: Theme.of(context).primaryColor,
-              elevation: 0,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisAlignment: MainAxisAlignment.start,
+            if (_isLandscape)
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Chart(transactionsList: _recentTransactions),
+                  Text('Show Chart'),
+                  Switch.adaptive(
+                      value: _showChart,
+                      onChanged: (value) {
+                        setState(() {
+                          _showChart = value;
+                        });
+                      })
                 ],
               ),
-            ),
-            TransactionWrapper(transactionsList: _userTransactions)
+            if (_isLandscape)
+              _showChart
+                  ? Container(
+                      height: (mediaqueryCtx.size.height -
+                              appBar.preferredSize.height -
+                              mediaqueryCtx.padding.top) *
+                          0.7,
+                      child: Chart(transactionsList: _recentTransactions),
+                    )
+                  : txListWidget,
+            if (!_isLandscape)
+              Container(
+                  height: (mediaqueryCtx.size.height -
+                          appBar.preferredSize.height -
+                          mediaqueryCtx.padding.top) *
+                      0.25,
+                  child: Chart(transactionsList: _recentTransactions)),
+            if (!_isLandscape) txListWidget,
           ],
         ),
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
-      floatingActionButton: FloatingActionButton(
-        child: Icon(Icons.add),
-        // backgroundColor: Theme.of(context).appBarTheme.backgroundColor,
-        backgroundColor: Theme.of(context).appBarTheme.backgroundColor,
-        onPressed: () => _addNewTransaction(context),
-      ),
+      floatingActionButton: Platform.isIOS
+          ? Container()
+          : FloatingActionButton(
+              child: Icon(Icons.add),
+              // backgroundColor: Theme.of(context).appBarTheme.backgroundColor,
+              backgroundColor: Theme.of(context).appBarTheme.backgroundColor,
+              onPressed: () => _addNewTransaction(context),
+            ),
     );
   }
 }
