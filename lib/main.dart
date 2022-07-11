@@ -1,9 +1,19 @@
-import 'package:flutter/material.dart';
-import 'package:personal_expenses_app/transaction_wrapper.dart';
+import 'dart:io';
 
-import './transaction.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter/cupertino.dart';
+import 'package:personal_expenses_app/widgets/new_transaction.dart';
+
+import './transaction_wrapper.dart';
+import './widgets/new_transaction.dart';
+import './widgets/chart.dart';
+import '../models/transaction.dart';
 
 void main() {
+  // if don't want to enable landscape mode
+  // WidgetsFlutterBinding.ensureInitialized();
+  // SystemChrome.setPreferredOrientations(
+  //     [DeviceOrientation.portraitUp, DeviceOrientation.portraitDown]);
   runApp(const MyApp());
 }
 
@@ -13,81 +23,152 @@ class MyApp extends StatelessWidget {
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Flutter Demo',
-      theme: ThemeData(
-        // This is the theme of your application.
-        //
-        // Try running your application with "flutter run". You'll see the
-        // application has a blue toolbar. Then, without quitting the app, try
-        // changing the primarySwatch below to Colors.green and then invoke
-        // "hot reload" (press "r" in the console where you ran "flutter run",
-        // or simply save your changes to "hot reload" in a Flutter IDE).
-        // Notice that the counter didn't reset back to zero; the application
-        // is not restarted.
-        primarySwatch: Colors.blue,
-      ),
-      home: const MyHomePage(title: 'Flutter Demo Home Page'),
-    );
+    return Platform.isIOS
+        ? const CupertinoApp()
+        : MaterialApp(
+            title: 'Flutter Demo',
+            theme: ThemeData().copyWith(
+              // primarySwatch: Colors.blue,
+              // accentColor: Colors.purple,
+              colorScheme: ThemeData()
+                  .colorScheme
+                  .copyWith(primary: Colors.blue, secondary: Colors.purple),
+              appBarTheme: const AppBarTheme(
+                  titleTextStyle: TextStyle(
+                      fontFamily: 'OpenSans',
+                      fontWeight: FontWeight.bold,
+                      fontSize: 22),
+                  color: Colors.blue),
+              // ignore: deprecated_member_use
+              // textTheme: ThemeData.light().textTheme.apply(
+              //       fontFamily: 'Roboto',
+              //     ),
+              textTheme: ThemeData.light().textTheme.copyWith(
+                  headline6: const TextStyle(
+                      fontFamily: 'Roboto',
+                      fontSize: 16,
+                      color: Colors.purple,
+                      fontWeight: FontWeight.bold),
+                  headline5: const TextStyle(
+                      fontFamily: 'Roboto',
+                      fontSize: 15,
+                      color: Colors.black,
+                      fontWeight: FontWeight.bold),
+                  headline4: const TextStyle(
+                    fontFamily: 'Roboto',
+                    fontSize: 12,
+                    color: Colors.grey,
+                    fontWeight: FontWeight.bold,
+                    fontStyle: FontStyle.italic,
+                  ),
+                  headline3: const TextStyle(color: Colors.white),
+                  button: TextStyle(color: Colors.white)),
+              elevatedButtonTheme: ElevatedButtonThemeData(
+                  style: ElevatedButton.styleFrom(
+                onPrimary: Colors.white,
+              )),
+              primaryTextTheme: ThemeData.light().textTheme.apply(
+                    fontFamily: 'Roboto',
+                  ),
+              accentTextTheme: ThemeData.light().textTheme.apply(
+                    fontFamily: 'Roboto',
+                  ),
+              errorColor: Colors.orange,
+            ),
+            home: MyHomePage(),
+          );
   }
 }
 
 class MyHomePage extends StatefulWidget {
-  const MyHomePage({Key? key, required this.title}) : super(key: key);
-
-  // This widget is the home page of your application. It is stateful, meaning
-  // that it has a State object (defined below) that contains fields that affect
-  // how it looks.
-
-  // This class is the configuration for the state. It holds the values (in this
-  // case the title) provided by the parent (in this case the App widget) and
-  // used by the build method of the State. Fields in a Widget subclass are
-  // always marked "final".
-
-  final String title;
-
   @override
   State<MyHomePage> createState() => _MyHomePageState();
 }
 
-class _MyHomePageState extends State<MyHomePage> {
-  int _counter = 0;
+class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
+  // const MyHomePage({Key? key}) : super(key: key);
+  final titleController = TextEditingController();
 
-  // final List<Transaction> transactions = [
-  //   Transaction(id: '001', itemName: 'Ham', amount: 10.0, category: 'Grocery'),
-  //   Transaction(
-  //       id: '002', itemName: 'Apples', amount: 4.0, category: 'Grocery'),
-  //   Transaction(
-  //       id: '003', itemName: 'Oranges', amount: 5.0, category: 'Grocery'),
-  //   Transaction(id: '004', itemName: 'Bread', amount: 5.0, category: 'Grocery'),
-  //   Transaction(
-  //       id: '005', itemName: 'Kayak', amount: 599.0, category: 'Sports'),
-  // ];
+  final amountController = TextEditingController();
 
-  final List<Map<String, String>> transactionsList = [
-    {'id': '001', 'itemName': 'Ham', 'amount': '10.0', 'category': 'Grocery'},
-    {'id': '002', 'itemName': 'Apples', 'amount': '4.0', 'category': 'Grocery'},
-    {
-      'id': '003',
-      'itemName': 'Oranges',
-      'amount': '5.0',
-      'category': 'Grocery'
-    },
-    {'id': '004', 'itemName': 'Bread', 'amount': '5.0', 'category': 'Grocery'},
-    {'id': '005', 'itemName': 'Kayak', 'amount': '599.0', 'category': 'Sports'},
-  ];
+  String itemNameInput = '';
 
-  void _incrementCounter() {
+  String amountInput = '';
+
+  final List<Transaction> _userTransactions = [];
+
+  bool _showChart = false;
+
+  @override
+  void initState() {
+    WidgetsBinding.instance.addObserver(this);
+    super.initState();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    print(state);
+  }
+
+  @override
+  dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  void createTxn(String itemName, double amount, DateTime datetime) {
+    final newTxn = Transaction(
+        id: DateTime.now().toString(),
+        itemName: itemName,
+        amount: amount,
+        category: 'Misc',
+        datetime: datetime);
+
     setState(() {
-      // This call to setState tells the Flutter framework that something has
-      // changed in this State, which causes it to rerun the build method below
-      // so that the display can reflect the updated values. If we changed
-      // _counter without calling setState(), then the build method would not be
-      // called again, and so nothing would appear to happen.
-      _counter++;
+      _userTransactions.add(newTxn);
     });
   }
 
+  void deleteTxn(String id) {
+    setState(() {
+      _userTransactions.removeWhere((tx) => tx.id == id);
+    });
+  }
+
+  List<Transaction> get _recentTransactions {
+    return _userTransactions.where((tx) {
+      return tx.datetime.isAfter(
+        DateTime.now().subtract(
+          Duration(days: 7),
+        ),
+      );
+    }).toList();
+  }
+
+  void _addNewTransaction(BuildContext ctx) {
+    showModalBottomSheet(
+        context: ctx,
+        builder: (_) {
+          return GestureDetector(
+            onTap: () {},
+            child: NewTransaction(createTxn),
+            behavior: HitTestBehavior.opaque,
+          );
+        });
+  }
+
+  Widget builderFloatingButton() {
+    return Platform.isIOS
+        ? Container()
+        : FloatingActionButton(
+            child: Icon(Icons.add),
+            // backgroundColor: Theme.of(context).appBarTheme.backgroundColor,
+            backgroundColor: Theme.of(context).appBarTheme.backgroundColor,
+            onPressed: () => _addNewTransaction(context),
+          );
+  }
+
+  // @override
   @override
   Widget build(BuildContext context) {
     // This method is rerun every time setState is called, for instance as done
@@ -96,39 +177,96 @@ class _MyHomePageState extends State<MyHomePage> {
     // The Flutter framework has been optimized to make rerunning build methods
     // fast, so that you can just rebuild anything that needs updating rather
     // than having to individually change instances of widgets.
-    return Scaffold(
-      appBar: AppBar(
-        // Here we take the value from the MyHomePage object that was created by
-        // the App.build method, and use it to set our appbar title.
-        title: Text(widget.title),
-      ),
-      body: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: <Widget>[
-          Card(
-            color: Colors.blue,
-            child: Container(
-              width: double.infinity,
-              child: Center(child: Text('This is your app!')),
+    final _isLandscape =
+        MediaQuery.of(context).orientation == Orientation.landscape;
+    final appBar = Platform.isIOS
+        ? CupertinoNavigationBar(
+            middle: Text('Personal Expenses'),
+            trailing: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                GestureDetector(
+                  child: Icon(CupertinoIcons.add),
+                  onTap: () => _addNewTransaction,
+                )
+              ],
             ),
-            elevation: 0,
-          ),
-          Card(
-              //     child: Container(
-              //   child: Text(
-              //     'Transactions',
-              //     style: TextStyle(fontSize: 20),
-              //   ),
-              // ),
-              child: TransactionWrapper(transactionsList: transactionsList)),
+          )
+        : PreferredSize(
+            preferredSize: const Size.fromHeight(50),
+            child: AppBar(
+              // Here we take the value from the MyHomePage object that was created by
+              // the App.build method, and use it to set our appbar title.
+              title: Text('Personal Expenses'),
+              actions: [
+                IconButton(
+                  icon: Icon(Icons.add),
+                  onPressed: () => _addNewTransaction(context),
+                ),
+              ],
+            ),
+          );
+    final txListWidget = Container(
+      height: (MediaQuery.of(context).size.height -
+              appBar.preferredSize.height -
+              MediaQuery.of(context).padding.top) *
+          0.75,
+      child: TransactionWrapper(
+          transactionsList: _userTransactions, deleteTxn: deleteTxn),
+    );
+
+    final mediaqueryCtx = MediaQuery.of(context);
+
+    final bodyRender = SafeArea(
+        child: SingleChildScrollView(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: <Widget>[
+          if (_isLandscape)
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text('Show Chart',
+                    style: Theme.of(context).textTheme.headline5),
+                Switch.adaptive(
+                    value: _showChart,
+                    onChanged: (value) {
+                      setState(() {
+                        _showChart = value;
+                      });
+                    })
+              ],
+            ),
+          if (_isLandscape)
+            _showChart
+                ? Container(
+                    height: (mediaqueryCtx.size.height -
+                            appBar.preferredSize.height -
+                            mediaqueryCtx.padding.top) *
+                        0.7,
+                    child: Chart(transactionsList: _recentTransactions),
+                  )
+                : txListWidget,
+          if (!_isLandscape)
+            Container(
+                height: (mediaqueryCtx.size.height -
+                        appBar.preferredSize.height -
+                        mediaqueryCtx.padding.top) *
+                    0.25,
+                child: Chart(transactionsList: _recentTransactions)),
+          if (!_isLandscape) txListWidget,
         ],
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _incrementCounter,
-        tooltip: 'Increment',
-        child: const Icon(Icons.add),
-      ), // This trailing comma makes auto-formatting nicer for build methods.
-    );
+    ));
+
+    return Platform.isIOS
+        ? CupertinoPageScaffold(child: bodyRender)
+        : Scaffold(
+            appBar: appBar,
+            body: bodyRender,
+            floatingActionButtonLocation:
+                FloatingActionButtonLocation.centerFloat,
+            floatingActionButton: builderFloatingButton());
   }
 }

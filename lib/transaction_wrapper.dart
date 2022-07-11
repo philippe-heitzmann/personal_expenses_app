@@ -1,32 +1,48 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/src/foundation/key.dart';
-import 'package:flutter/src/widgets/framework.dart';
+import 'package:intl/intl.dart';
+import 'package:personal_expenses_app/transaction_card.dart';
 
-import './transaction.dart';
+import './main.dart';
+import 'models/transaction.dart';
 
 class TransactionWrapper extends StatelessWidget {
-  // const Quiz({Key? key}) : super(key: key);
-  // final List<Object> transactions;
-  // Quiz(this._answerQuestion, this.questions, this._questionIndex);
+  final List<Transaction> transactionsList;
+  final Function deleteTxn;
 
-  TransactionWrapper({required this.transactionsList});
-
-  final List<Map<String, String>> transactionsList;
+  TransactionWrapper({required this.transactionsList, required this.deleteTxn});
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      children: <Widget>[
-        ...(transactionsList).map((transaction) {
-          return Transaction(
-            id: (transaction['id'] as String),
-            itemName: (transaction['itemName'] as String),
-            amount: (transaction['amount'] as String),
-            category: (transaction['category'] as String),
+    return transactionsList.isEmpty
+        ? LayoutBuilder(builder: (ctx, constraints) {
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                Center(
+                  child: Text('No transactions recorded',
+                      style: Theme.of(context).textTheme.headline5),
+                ),
+                const SizedBox(width: 10, height: 20),
+                Container(
+                    height: constraints.maxHeight * 0.6,
+                    child: Image.asset('assets/images/waiting.png',
+                        fit: BoxFit.cover)),
+              ],
+            );
+          })
+        : ListView(
+            children: transactionsList
+                .map((tx) => TransactionCard(
+                    key: ValueKey(tx.id),
+                    transaction: tx,
+                    deleteTxn: deleteTxn))
+                .toList(),
           );
-        }), //.toList(),
-        // RaisedButton(onPressed: null, child: Text('Answer 1')),
-      ],
-    );
+    // : ListView.builder(
+    //     itemBuilder: (ctx, index) {
+    //       // return TransactionCard(transaction: transactionsList[index]);
+    //       return
   }
 }
+
+//child: ))
