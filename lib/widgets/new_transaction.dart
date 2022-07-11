@@ -1,10 +1,13 @@
-// text fields
+import 'dart:io';
 
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
-import 'package:personal_expenses_app/main.dart';
+import 'package:flutter/cupertino.dart';
 
+import 'package:intl/intl.dart';
+
+import 'package:personal_expenses_app/main.dart';
 import 'package:personal_expenses_app/models/transaction.dart';
+import 'package:personal_expenses_app/widgets/adaptive_flatbutton.dart';
 
 class NewTransaction extends StatefulWidget {
   final Function createTxn;
@@ -64,6 +67,7 @@ class _NewTransactionState extends State<NewTransaction> {
                 bottom: MediaQuery.of(context).viewInsets.bottom + 10),
             child: Column(
               children: [
+                // CupertinoTextField(),
                 TextField(
                   decoration: const InputDecoration(labelText: 'Item name'),
                   controller: _titleController,
@@ -83,12 +87,9 @@ class _NewTransactionState extends State<NewTransaction> {
                     Text(_selectedDate == null
                         ? 'No date chosen!'
                         : 'Date picked: ${DateFormat.yMd().format(_selectedDate!)}'),
-                    TextButton(
-                        onPressed: presentDatePicker,
-                        child: Text('Choose date',
-                            style: TextStyle(
-                                fontWeight: FontWeight.bold,
-                                color: Colors.blue)))
+                    AdaptiveFlatButton(
+                        presentDatePicker: presentDatePicker,
+                        showText: 'Choose Date')
                   ],
                 ),
                 Container(
